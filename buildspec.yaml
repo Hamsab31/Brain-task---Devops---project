@@ -1,23 +1,25 @@
 version: 0.2
 
-env:
-  variables:
-    AWS_DEFAULT_REGION: ap-south-1
-    ECR_REPO: 304230205204.dkr.ecr.ap-south-1.amazonaws.com/brain-task
-    IMAGE_TAG: latest
-
 phases:
   pre_build:
     commands:
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION |
-        docker login --username AWS --password-stdin $ECR_REPO
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 304230205204.dkr.ecr.ap-south-1.amazonaws.com
 
   build:
     commands:
-      - echo "Building Docker image..."
-      - docker buildx build --platform linux/amd64 -t $ECR_REPO:$IMAGE_TAG --push .
+      - echo Build started
+      - docker build -t brain-task .
+      - docker tag brain-task:latest 304230205204.dkr.ecr.ap-south-1.amazonaws.com/brain-task:latest
 
   post_build:
     commands:
-      - echo "Build completed successfully"
+      - echo Pushing image to ECR
+      - docker push 304230205204.dkr.ecr.ap-south-1.amazonaws.com/brain-task:latest
+      - echo Build completed
+      - mkdir -p output
+      - cp -r k8 output/
+
+artifacts:
+  files:
+    - output/**/*
